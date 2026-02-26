@@ -12,7 +12,7 @@ while True:
     choice = input("\nEnter your choice: ")
 
     if choice == "1":
-        task_name = input("\nEnter the name of the task: ").upper()
+        task_name = input("\nEnter the name of the task: ").strip()
         task_description = input("Enter the description of the task: ")
         
         while True:
@@ -44,59 +44,68 @@ while True:
             print("\nTask added successfully!")
             
     elif choice == "2":
-        try:
-            with open("tasks.json", "r") as file:
-                tasks = json.load(file)
-        except FileNotFoundError:
-            tasks = []
-            print("\nNo tasks found.")
-        
-        print("How would you like to view the tasks?")
-        print("\n1. View all tasks\n2. View tasks that are due\n3. View tasks that are overdue\n4. View tasks that are completed\n5. View task by name.")
-        view_choice = input("\nEnter your choice: ")
-        
-        due_tasks = []
-        overdue_tasks = []
-        completed_tasks = []
-        
-        try:
-            for task in tasks:
-                task_due_date = datetime.fromisoformat(task["due_date"]).date()
-                if task["completed"]:
-                    completed_tasks.append(task)
-                elif task_due_date == today:
-                    due_tasks.append(task)
-                elif task_due_date < today:
-                    overdue_tasks.append(task)
-        except ValueError:
-            print(f"\nWARNING: Task {task['name']} has invalid date format: {task['due_date']}")
+        while True:
+            try:
+                with open("tasks.json", "r") as file:
+                    tasks = json.load(file)
+            except FileNotFoundError:
+                tasks = []
+                print("\nNo tasks found.")
+                break
             
-        def display_task(task):
-            status = "✅" if task["completed"] else "❌"
-            print(f"\nName: {task['name']}\nDescription: {task['description']}\nDue date: {task['due_date']}\nCreated at: {task['created_at']}\nStatus: {status}")
-        
-        if view_choice == "1":
-            for task in tasks:
-                display_task(task)
-        elif view_choice == "2":
-            for task in due_tasks:
-                display_task(task)
-        elif view_choice == "3":
-            for task in overdue_tasks:
-                display_task(task)
-        elif view_choice == "4":
-            for task in completed_tasks:
-                display_task(task)
-        else:
-            name = input("\nWhat task do you want to find? ").upper()
-            found = False
-            for task in tasks:
-                if task["name"] == name:
+            print("How would you like to view the tasks?")
+            print("\n1. View all tasks\n2. View tasks that are due\n3. View tasks that are overdue\n4. View tasks that are completed\n5. View task by name.")
+            view_choice = input("\nEnter your choice: ")
+            
+            due_tasks = []
+            overdue_tasks = []
+            completed_tasks = []
+            
+            try:
+                for task in tasks:
+                    task_due_date = datetime.strptime(task["due_date"], "%Y-%m-%d").date()
+                    if task["completed"]:
+                        completed_tasks.append(task)
+                    elif task_due_date >= today:
+                        due_tasks.append(task)
+                    elif task_due_date < today:
+                        overdue_tasks.append(task)
+            except ValueError:
+                print(f"\nWARNING: Task {task['name']} has invalid date format: {task['due_date']}")
+                
+            def display_task(task):
+                status = "✅" if task["completed"] else "❌"
+                print(f"\nName: {task['name']}\nDescription: {task['description']}\nDue date: {task['due_date']}\nCreated at: {task['created_at']}\nStatus: {status}")
+            
+            if view_choice == "1":
+                for task in tasks:
                     display_task(task)
-                    found = True
-            if not found:
+                break
+            elif view_choice == "2":
+                for task in due_tasks:
+                    display_task(task)
+                break
+            elif view_choice == "3":
+                for task in overdue_tasks:
+                    display_task(task)
+                break
+            elif view_choice == "4":
+                for task in completed_tasks:
+                    display_task(task)
+                break
+            else:
+                name = input("\nWhat task do you want to find? ").strip()
                 found = False
-                print("\nSorry, we couldn't find task with that name.")
+                for task in tasks:
+                    if task["name"].lower() == name.lower():
+                        display_task(task)
+                        found = True
+                        break
+                if not found:
+                    found = False
+                    print("\nSorry, we couldn't find task with that name.")
+                
+                break
                 
     elif choice == "3":
         try:
@@ -126,4 +135,4 @@ while True:
         break
 
     else:
-        print("\nInvalid choice, try again!")  
+        print("\nInvalid choice, try again!")
